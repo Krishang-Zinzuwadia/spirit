@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+venv/
+env/
+.venv/
+
+# Environment Variables (Secrets)
+.env
+
+# PyInstaller / Build Artifacts
+build/
+dist/
+*.manifest
+
+# Runtime / Logs
+*.log
+*.tmp
+*.wav
+thumbs.db
+desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+.claude/
+*.user
+
+# Inno Setup locally generated output (if any)
+installer/Output/
