@@ -1,0 +1,11 @@
+PyQt6
+SpeechRecognition
+pyaudio
+pywin32
+pillow
+keyboard
+pywinauto
+sarvamai
+sounddevice
+soundfile
+python-dotenv
