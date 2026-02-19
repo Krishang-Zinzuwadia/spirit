@@ -5,6 +5,7 @@ Handles opening apps, system control, timers and alarms.
 
 import os
 import re
+import shutil
 import subprocess
 import ctypes
 import threading
@@ -14,39 +15,51 @@ import winsound
 
 # ── App Launcher ───────────────────────────────────────────────────────────────
 APP_MAP = {
-    "vscode":       r"code",
-    "vs code":      r"code",
-    "visual studio code": r"code",
-    "opera":        r"C:\Users\kingg\AppData\Local\Programs\Opera\opera.exe",
-    "opera browser": r"C:\Users\kingg\AppData\Local\Programs\Opera\opera.exe",
-    "chrome":       r"chrome",
-    "google chrome": r"chrome",
-    "notepad":      r"notepad",
-    "calculator":   r"calc",
-    "file explorer": r"explorer",
-    "explorer":     r"explorer",
-    "task manager":  r"taskmgr",
-    "command prompt": r"cmd",
-    "terminal":      r"wt",
-    "spotify":       r"spotify",
-    "discord":       r"discord",
+    "vscode":       "code",
+    "vs code":      "code",
+    "visual studio code": "code",
+    "opera":        "opera",
+    "opera browser": "opera",
+    "chrome":       "chrome",
+    "google chrome": "chrome",
+    "notepad":      "notepad",
+    "calculator":   "calc",
+    "file explorer": "explorer",
+    "explorer":     "explorer",
+    "task manager":  "taskmgr",
+    "command prompt": "cmd",
+    "terminal":      "wt",
+    "spotify":       "spotify",
+    "discord":       "discord",
 }
 
 
 def open_app(app_name: str) -> str:
     key = app_name.lower().strip()
-    cmd = APP_MAP.get(key)
-    if cmd is None:
+    cmd = APP_MAP.get(key, key)
+
+    # Try resolving via PATH first (works for most apps)
+    resolved = shutil.which(cmd)
+    if resolved:
         try:
-            os.startfile(key)
+            subprocess.Popen([resolved])
             return f"Opening {app_name}"
-        except OSError:
-            return f"Sorry, I don't know how to open {app_name}"
+        except Exception:
+            pass
+
+    # Try shell launch (handles built-in commands like 'calc')
     try:
         subprocess.Popen(cmd, shell=True)
         return f"Opening {app_name}"
-    except Exception as e:
-        return f"Failed to open {app_name}: {e}"
+    except Exception:
+        pass
+
+    # Last resort — os.startfile (handles registered protocols & Start Menu apps)
+    try:
+        os.startfile(cmd)
+        return f"Opening {app_name}"
+    except OSError:
+        return f"Sorry, I don't know how to open {app_name}"
 
 
 # ── System Control ─────────────────────────────────────────────────────────────
@@ -77,8 +90,6 @@ def sleep_pc() -> str:
 
 
 # ── Timer ──────────────────────────────────────────────────────────────────────
-
-_active_timers: list[threading.Timer] = []
 
 
 def _timer_alert(label: str):
@@ -262,6 +273,10 @@ def parse_and_execute(command: str, speak_callback=None, pause_fn=None, resume_f
     if re.search(r'\block\b', cmd):
         return lock_screen()
 
+    # ── Cancel Shutdown (must be checked BEFORE shutdown/restart) ───
+    if "cancel" in cmd and ("shutdown" in cmd or "shut down" in cmd or "restart" in cmd):
+        return cancel_shutdown()
+
     # ── Shutdown ───────────────────────────────────────────
     if "shut down" in cmd or "shutdown" in cmd:
         return shutdown_pc()
@@ -270,12 +285,8 @@ def parse_and_execute(command: str, speak_callback=None, pause_fn=None, resume_f
     if "restart" in cmd or "reboot" in cmd:
         return restart_pc()
 
-    # ── Cancel Shutdown ────────────────────────────────────
-    if "cancel" in cmd and ("shutdown" in cmd or "shut down" in cmd or "restart" in cmd):
-        return cancel_shutdown()
-
     # ── Sleep ──────────────────────────────────────────────
-    if re.search(r'\bsleep\b', cmd):
+    if re.search(r'\b(go to sleep|sleep mode|put .* to sleep)\b', cmd) or cmd.strip() == "sleep":
         return sleep_pc()
 
     # ── Timer ──────────────────────────────────────────────

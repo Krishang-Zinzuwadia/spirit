@@ -17,7 +17,7 @@ DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 OutputDir=..\dist
 OutputBaseFilename=SpiritSetup
-SetupIconFile=
+SetupIconFile=..\assets\spirit.ico
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
@@ -26,7 +26,7 @@ UninstallDisplayIcon={app}\{#MyAppExeName}
 UninstallDisplayName={#MyAppName}
 AppCopyright=Copyright (C) 2026 {#MyAppPublisher}
 MinVersion=10.0
-VersionInfoVersion={#MyAppVersion}
+VersionInfoVersion=1.0.0.0
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription={#MyAppName} Voice Assistant Setup
 VersionInfoTextVersion={#MyAppVersion}
@@ -40,7 +40,8 @@ Name: "startupentry"; Description: "Start Spirit automatically when Windows star
 
 [Files]
 Source: "{#MyAppExePath}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\.env"; DestDir: "{app}"; Flags: ignoreversion onlyifdoesntexist
+Source: "..\.env.example"; DestDir: "{app}"; DestName: ".env.example"; Flags: ignoreversion
+; NOTE: .env is NOT shipped — user must create their own with their API key
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"

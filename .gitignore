@@ -10,6 +10,7 @@ env/
 
 # Environment Variables (Secrets)
 .env
+.env.local
 
 # PyInstaller / Build Artifacts
 build/
@@ -21,7 +22,9 @@ dist/
 *.tmp
 *.wav
 thumbs.db
+Thumbs.db
 desktop.ini
+$RECYCLE.BIN/
 
 # IDEs
 .vscode/
@@ -31,3 +34,12 @@ desktop.ini
 
 # Inno Setup locally generated output (if any)
 installer/Output/
+
+# Testing / Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# Local Scripts (hardcoded paths)
+run_iscc.bat
