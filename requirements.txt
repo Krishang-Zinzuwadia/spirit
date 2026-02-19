@@ -8,4 +8,5 @@ pywinauto
 sarvamai
 sounddevice
 soundfile
+numpy
 python-dotenv

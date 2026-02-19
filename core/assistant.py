@@ -15,7 +15,6 @@ import wave
 import speech_recognition as sr
 import sounddevice as sd
 import soundfile as sf
-import numpy as np
 import sys
 from dotenv import load_dotenv
 from sarvamai import SarvamAI
@@ -29,11 +28,36 @@ else:
     base_path = os.path.dirname(os.path.abspath(__file__))
     base_path = os.path.dirname(base_path)  # Go up one level from core/
 
-load_dotenv(os.path.join(base_path, '.env'))
+# Load .env from install dir first, then from writable APPDATA fallback
+_appdata_dir = os.path.join(os.environ.get('APPDATA', base_path), 'Spirit')
+load_dotenv(os.path.join(base_path, '.env'))        # install dir (may be read-only)
+load_dotenv(os.path.join(_appdata_dir, '.env'))      # user-writable override
 
 SARVAM_API_KEY = os.getenv("SARVAM_API_KEY")
 if not SARVAM_API_KEY:
-    raise RuntimeError("SARVAM_API_KEY not found in .env file")
+    # Create a template .env in the writable APPDATA location
+    os.makedirs(_appdata_dir, exist_ok=True)
+    env_path = os.path.join(_appdata_dir, '.env')
+    if not os.path.exists(env_path):
+        try:
+            with open(env_path, 'w') as f:
+                f.write("SARVAM_API_KEY=your_key_here\n")
+        except Exception:
+            pass
+    try:
+        import ctypes
+        ctypes.windll.user32.MessageBoxW(
+            0,
+            f"Sarvam AI API key not found.\n\n"
+            f"Please edit the .env file at:\n{env_path}\n\n"
+            f"Replace 'your_key_here' with your API key from sarvam.ai",
+            "Spirit \u2013 Configuration Required",
+            0x00000010 | 0x00001000,  # MB_ICONERROR | MB_SYSTEMMODAL
+        )
+    except Exception:
+        pass
+    print(f"[Spirit] SARVAM_API_KEY not set. Edit: {env_path}")
+    sys.exit(1)
 
 
 class AssistantThread(QThread):

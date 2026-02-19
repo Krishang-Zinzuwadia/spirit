@@ -7,7 +7,6 @@ block_cipher = None
 # Collect all hidden imports for sarvamai, sounddevice, soundfile, pywinauto
 hidden_imports = [
     'pyaudio',
-    'pynput',
     'keyboard',
     'win32api',
     'win32con',
@@ -26,7 +25,8 @@ hidden_imports = [
 # Include data files - check if assets exists
 import os
 assets_data = [('assets', 'assets')] if os.path.exists('assets') else []
-datas = [('.env', '.')] + assets_data
+# NOTE: .env is NOT bundled — users must provide their own API key
+datas = assets_data
 
 a = Analysis(
     ['main.py'],
@@ -37,7 +37,25 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['tkinter', 'matplotlib', 'numpy.distutils'],
+    excludes=[
+        # GUI frameworks not needed
+        'tkinter',
+        # Heavy ML/data-science packages pulled in by sarvamai but NOT needed
+        # (Spirit only uses sarvamai as an HTTP API client)
+        'torch', 'torchvision', 'torchaudio',
+        'tensorflow', 'keras',
+        'transformers', 'tokenizers', 'sentencepiece',
+        'scipy', 'pandas',
+        'matplotlib', 'plotly', 'seaborn',
+        'numpy.distutils',
+        'sklearn', 'scikit-learn',
+        'jupyter', 'notebook', 'IPython',
+        'tensorboard', 'tensorboardX',
+        'onnx', 'onnxruntime',
+        'triton',
+        'sympy',
+        'pygments',
+    ],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
     cipher=block_cipher,
@@ -66,6 +84,6 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=None,              # add icon path here if you have one, e.g. 'assets/icon.ico'
+    icon='assets\\spirit.ico',
     version=None,
 )
